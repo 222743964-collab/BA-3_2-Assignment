@@ -21,3 +21,27 @@ monthly_income = annual_income / 12
 est_payment = loan_amount / loan_term_months * 1.1
 dti = (existing_monthly_debt + est_payment) / monthly_income
 loan_to_income = loan_amount / annual_income
+
+z = (-3.4
+     + 3.2 * np.clip(dti - 0.25, 0, None)
+     + 0.9 * np.clip(loan_to_income - 0.3, 0, None)
+     + 0.035 * credit_utilization_pct
+     + 0.42 * missed_payments_12m
+     - 0.06 * credit_history_years
+     - 0.05 * employment_years
+     - 0.00000 * annual_income
+     - 0.35 * (home_ownership == "own") - 0.15 * (home_ownership == "mortgage")
+     + 0.012 * np.clip(35 - age, 0, None)
+     + 0.03 * np.clip(num_credit_accounts - 9, 0, None)
+     + rng.normal(0, 0.5, N))
+p = 1 / (1 + np.exp(-z))
+default = (rng.random(N) < p).astype(int)
+
+df = pd.DataFrame(dict(
+    age=age, annual_income=annual_income, employment_years=employment_years,
+    home_ownership=home_ownership, credit_history_years=credit_history_years,
+    num_credit_accounts=num_credit_accounts, credit_utilization_pct=credit_utilization_pct,
+    missed_payments_12m=missed_payments_12m, existing_monthly_debt=existing_monthly_debt,
+    loan_amount=loan_amount, loan_term_months=loan_term_months, default=default))
+df.to_csv("data/credit_data.csv", index=False)
+print(df.shape, "default rate:", round(df.default.mean(), 3))
