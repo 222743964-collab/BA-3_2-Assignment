@@ -66,3 +66,27 @@ def api_predict():
 
     df = add_features(pd.DataFrame([row]))
     p = float(predict(df)[0])
+
+ # Explain: how much does risk change if each factor were typical?
+    factors = []
+    for col in NUMERIC + CATEGORICAL:
+        alt = df.copy()
+        if col in NUMERIC:
+            alt[col] = medians[col]
+        else:
+            alt[col] = "rent"
+        if col in ("debt_to_income", "loan_to_income"):
+            continue  # derived from other inputs; covered by income/loan/debt
+        delta = p - float(predict(alt)[0])
+        if abs(delta) >= 0.003:
+            factors.append({"name": LABELS[col], "impact": round(delta * 100, 1)})
+    factors.sort(key=lambda f: -abs(f["impact"]))
+
+    label, color = band(p)
+    score = int(round(850 - p ** 0.5 * 550))   # display-only 300–850 scale
+    return jsonify(probability=round(p * 100, 1), score=max(300, min(850, score)),
+                   band=label, color=color, factors=factors[:5],
+                   dti=round(float(df.debt_to_income[0]) * 100, 1))
+
+if __name__ == "__main__":
+    app.run(debug=True)
