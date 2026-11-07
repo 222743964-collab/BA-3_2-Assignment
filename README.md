@@ -9,3 +9,9 @@ Data: credit_data.csv holds 8,000 synthetic applicants, each labelled as having 
 Model: a Gradient Boosting classifier (scikit-learn) learns those patterns from the data. It also calculates two ratios from the inputs, debt-to-income and loan size versus income.
 Backend: a Flask server in app.py validates the inputs, runs the model and returns the default probability, a risk band, a 300–850 score and the top factors behind the result.
 Frontend: a single page with a gauge, the percentage, the band, and a short list showing how many percentage points each factor adds to or removes from the risk compared with a typical applicant.
+
+To Run the Website
+1. `pip install -r requirements.txt`
+2. (optional) `python generate_data.py` then `python train_model.py` to rebuild the data and model
+3. `python app.py` and open http://127.0.0.1:5000
+
