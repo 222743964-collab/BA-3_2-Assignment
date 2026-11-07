@@ -1,1 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credit risk check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#16263d;--slate:#58667d;--mist:#eef2f7;--line:#d3dbe6;--paper:#fbfcfe;--blue:#2459d6;
+--green:#2e8b6a;--amber:#d99a12;--orange:#d9692b;--red:#c23b34;
+--serif:"Newsreader",Georgia,serif;--sans:"Public Sans",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root{--ink:#e8eef8;--slate:#9fb0c8;--mist:#111c2e;--line:#27364f;--paper:#0b1424;--blue:#6d97ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 var(--sans)}
+main{max-width:1080px;margin:0 auto;padding:40px 20px 64px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:48px;align-items:start}
+h1{font:700 clamp(2rem,4vw,2.9rem)/1.1 var(--serif);margin:0 0 12px;letter-spacing:-.01em}
+.lede{color:var(--slate);max-width:52ch;margin:0 0 28px}
+fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:18px 0 8px}
+legend{font:700 1.15rem var(--serif);padding:0 12px 0 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+label{display:block;font-size:.88rem;font-weight:500;color:var(--slate)}
+input,select{width:100%;margin-top:4px;padding:10px 12px;font:inherit;color:var(--ink);background:var(--mist);border:1px solid var(--line);border-radius:6px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+button{margin-top:22px;padding:13px 26px;font:700 1rem var(--sans);background:var(--blue);color:#fff;border:0;border-radius:6px;cursor:pointer}
+button[disabled]{opacity:.6;cursor:wait}
+#err{color:var(--red);min-height:1.5em;margin-top:10px;font-weight:500}
+aside{position:sticky;top:24px;background:var(--mist);border:1px solid var(--line);border-radius:10px;padding:24px}
+aside h2{font:700 1.15rem var(--serif);margin:0 0 4px}
+.empty{color:var(--slate);margin:8px 0 0}
+svg{width:100%;display:block}
+#arc{transition:stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1),stroke .4s}
+.readout{text-align:center;margin-top:-6px}
+.pct{font:700 3rem/1 var(--serif)}
+.band{font-weight:700;margin-top:4px}
+.meta{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:18px;padding-top:12px;color:var(--slate);font-size:.9rem}
+.meta b{color:var(--ink)}
+ul.f{list-style:none;padding:0;margin:14px 0 0}
+ul.f li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:.92rem}
+.up{color:var(--red);font-weight:700}.down{color:var(--green);font-weight:700}
+.note{font-size:.78rem;color:var(--slate);margin-top:16px}
+@media (max-width:860px){main{grid-template-columns:1fr}aside{position:static}}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){ #arc{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<section>
+  <h1>How risky is this loan?</h1>
+  <p class="lede">Enter the applicant's details and the model estimates the chance of default. Nothing you type is stored.</p>
+  <form id="f" novalidate>
+    <fieldset><legend>Applicant</legend><div class="grid">
+      <label>Age<input name="age" type="number" value="34" min="18" max="100"></label>
+      <label>Annual income<input name="annual_income" type="number" value="52000" min="1"></label>
+      <label>Years employed<input name="employment_years" type="number" step="0.1" value="6" min="0"></label>
+      <label>Housing situation<select name="home_ownership"><option value="rent">Rent</option><option value="mortgage">Mortgage</option><option value="own">Own outright</option></select></label>
+    </div></fieldset>
+    <fieldset><legend>Credit history</legend><div class="grid">
+      <label>Years of credit history<input name="credit_history_years" type="number" step="0.1" value="8" min="0"></label>
+      <label>Open credit accounts<input name="num_credit_accounts" type="number" value="5" min="0"></label>
+      <label>Credit utilization (%)<input name="credit_utilization_pct" type="number" step="0.1" value="35" min="0" max="100"></label>
+      <label>Missed payments, last 12 months<input name="missed_payments_12m" type="number" value="0" min="0"></label>
+      <label>Monthly debt payments<input name="existing_monthly_debt" type="number" value="800" min="0"></label>
+    </div></fieldset>
+    <fieldset><legend>Loan</legend><div class="grid">
+      <label>Loan amount<input name="loan_amount" type="number" value="15000" min="1"></label>
+      <label>Loan term (months)<input name="loan_term_months" type="number" value="48" min="1"></label>
+    </div></fieldset>
+    <button id="go" type="submit">Calculate risk</button>
+    <div id="err" role="alert"></div>
+  </form>
+</section>
 
+<aside aria-live="polite">
+  <h2>Result</h2>
+  <p class="empty" id="empty">Fill in the form and select Calculate risk.</p>
+  <div id="out" hidden>
+    <svg viewBox="0 0 200 120" aria-hidden="true">
+      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="16" stroke-linecap="round"/>
+      <path id="arc" d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="var(--green)" stroke-width="16" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+    </svg>
+    <div class="readout"><div class="pct" id="pct"></div><div class="band" id="band"></div></div>
+    <div class="meta"><span>Credit score <b id="score"></b></span><span>Debt-to-income <b id="dti"></b></span></div>
+    <ul class="f" id="factors"></ul>
+    <p class="note" id="fnote"></p>
+  </div>
+  <p class="note">Trained on 8,000 synthetic applicants (AUC {{ auc }}). A demonstration, not a lending decision.</p>
+</aside>
+</main>
+<script>
+const $=id=>document.getElementById(id),f=$("f"),colors={green:"--green",amber:"--amber",orange:"--orange",red:"--red"};
+f.addEventListener("submit",async e=>{
+  e.preventDefault();$("err").textContent="";$("go").disabled=true;
+  const body=Object.fromEntries(new FormData(f));
+  try{
+    const r=await fetch("/api/predict",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){$("err").textContent=d.error;return}
+    $("empty").hidden=true;$("out").hidden=false;
+    const c=`var(${colors[d.color]})`;
+    $("arc").style.stroke=c;
+    $("arc").style.strokeDashoffset=251.3*(1-Math.min(d.probability/60,1)); // gauge full at 60%
+    $("pct").textContent=d.probability+"%";
+    $("band").textContent=d.band+" risk of default";$("band").style.color=c;
+    $("score").textContent=d.score;$("dti").textContent=d.dti+"%";
+    $("factors").innerHTML=d.factors.map(x=>`<li><span>${x.name}</span><span class="${x.impact>0?"up":"down"}">${x.impact>0?"+":""}${x.impact} pts</span></li>`).join("");
+    $("fnote").textContent=d.factors.length?"Biggest drivers: how many percentage points each factor adds to (+) or removes from (−) the risk versus a typical applicant.":"No single factor stands out.";
+  }catch(_){$("err").textContent="Can't reach the server. Check that app.py is running."}
+  finally{$("go").disabled=false}
+});
+</script>
+</body>
+</html>
