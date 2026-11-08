@@ -64,7 +64,19 @@
     width: 100%;
     display: flex;
     align-items: center;
+    gap: 16px;
+  }
+  
+  .brand-group {
+    display: flex;
+    align-items: center;
     gap: 12px;
+  }
+  
+  .logo-icon {
+    width: 180px;
+    height: auto;
+    object-fit: contain;
   }
 
   .logo {
@@ -307,7 +319,10 @@
 <body>
 
 <header>
-  <div class="logo">DevOps</div>
+  <div class="brand-group">
+    <img src="/static/images/logo.png" alt="DevOps Logo" class="logo-icon">
+    <div class="logo"></div>
+  </div>
   <div class="logo-badge">Risk Engine v2.4</div>
 </header>
 
@@ -370,7 +385,7 @@
     <div class="footer-col">
       <h3>System Status</h3>
       <p>API Endpoint: Online<br>
-      Latency: < 50ms<br>
+      Latency: &lt; 50ms<br>
       Model Version: 2.4.1 (Stable)</p>
     </div>
   </div>
